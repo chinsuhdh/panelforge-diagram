@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PanelForge State Machines</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&family=Google+Sans+Code:wght@300..700&display=swap">
+<link rel="stylesheet" href="state-machines.css">
+<style>
+  .entry { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .entry a { display: flex; flex-direction: column; gap: 6px; padding: 20px; border-radius: 16px; background: var(--surface-bright); border: 1px solid var(--stroke-default); color: var(--on-surface); text-decoration: none; }
+  .entry a:hover { border-color: var(--accent-fixed); }
+  .entry b { font-size: 18px; font-weight: 600; }
+  .list .table td:first-child a { color: var(--accent-fixed); text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="topnav"><div class="in">
+  <a class="brand" href="index.html">PanelForge · State Machines</a>
+  <nav aria-label="Trang"><a href="index.html" aria-current="page">Tổng quan</a><a href="state-machine-diagrams.html">Sơ đồ</a><a href="state-machine-simulator.html">Mô phỏng</a></nav>
+</div></header>
+
+<div class="wrap">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <p class="body-s muted mono">SEP490 · FA26SE251 · PanelForge</p>
+    <h1 class="headline">State Machine của hệ thống PanelForge</h1>
+    <p class="body-s muted">10 vòng đời trạng thái lấy từ code Backend (PanelForge.Domain và các Handler), đối chiếu với Phiếu đăng ký đề tài V1.2. Đọc sơ đồ để thấy cấu trúc, mở mô phỏng để chạy từng kịch bản.</p>
+  </div>
+
+  <div class="entry">
+    <a href="state-machine-diagrams.html"><b>Sơ đồ</b><span class="body-s muted">10 sơ đồ UML, bảng event / ai thực hiện / guard / action và luồng hoạt động của từng thực thể.</span></a>
+    <a href="state-machine-simulator.html"><b>Mô phỏng</b><span class="body-s muted">Chạy kịch bản từng bước, tự bấm event, đổi dữ liệu để thấy guard chặn và action chạy.</span></a>
+  </div>
+
+  <div class="list">
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>State machine</th><th>Ý nghĩa</th><th>Số trạng thái</th><th>Số transition</th><th>Số kịch bản</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<script src="state-machines.js"></script>
+<script>
+const { MACHINES } = window.SM;
+document.getElementById('rows').innerHTML = Object.entries(MACHINES).map(([k, m]) =>
+  `<tr><td><a href="state-machine-simulator.html#${k}">${m.name}</a></td><td>${m.vi}</td>
+   <td>${Object.keys(m.states).length}</td><td>${m.t.length}</td><td>${m.flows.length}</td></tr>`).join('');
+</script>
+</body>
+</html>

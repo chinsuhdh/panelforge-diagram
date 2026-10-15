@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PanelForge State Simulator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&family=Google+Sans+Code:wght@300..700&display=swap">
+<link rel="stylesheet" href="state-machines.css">
+<style>
+  .inputs { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+  .inputs label { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; }
+  .inputs input[type=text] { min-width: 220px; padding: 8px 14px; border: 1px solid var(--stroke-default); border-radius: 999px; background: var(--surface-bright); color: var(--on-surface); font: 13px var(--ff-sans); }
+  .inputs input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent-fixed); }
+  .info-grid.four { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 760px) { .info-grid.four { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .info-grid.four { grid-template-columns: 1fr; } }
+  .split { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; }
+  @media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
+  .vars { font: 12px var(--ff-mono); display: grid; gap: 3px; }
+  .vars b { font-weight: 600; }
+  .log { font: 12px var(--ff-mono); display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+  .log div { padding: 4px 8px; border-left: 3px solid var(--stroke-default); }
+  .log .ok { border-color: var(--primary); }
+  .log .bad { border-color: var(--error); color: var(--error); }
+  .log .act { border-color: var(--positive); color: var(--positive); }
+  .btn-who { font-size: 11px; opacity: .7; }
+</style>
+</head>
+<body>
+<header class="topnav"><div class="in">
+  <a class="brand" href="index.html">PanelForge · State Machines</a>
+  <nav aria-label="Trang"><a href="index.html">Tổng quan</a><a href="state-machine-diagrams.html">Sơ đồ</a><a href="state-machine-simulator.html" aria-current="page">Mô phỏng</a></nav>
+</div></header>
+
+<div class="wrap">
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <p class="body-s muted mono">SEP490 · FA26SE251 · UML State Machine</p>
+    <h1 class="headline">Mô phỏng State Machine</h1>
+    <p class="body-s muted">Chọn một thực thể, chạy một kịch bản có sẵn từng bước hoặc tự bấm event. Guard và thông báo lỗi lấy theo Handler trong Backend, vai trò theo Phiếu đăng ký V1.2.</p>
+  </div>
+
+  <div class="chips" id="tabs" role="tablist" aria-label="Chọn thực thể"></div>
+
+  <div class="viewport"><svg id="svg" role="img" aria-label="Sơ đồ trạng thái"></svg></div>
+
+  <div class="panel">
+    <div class="row between">
+      <div class="row">
+        <span class="headline-s" id="cur-label" style="font-size:16px">Trạng thái hiện tại</span>
+        <span class="badge" id="cur-badge"></span>
+      </div>
+      <span class="badge" id="result-badge">sẵn sàng</span>
+    </div>
+    <div class="info-grid four">
+      <div class="info-item"><span class="body-s muted">Event vừa kích hoạt</span><code id="i-event">–</code></div>
+      <div class="info-item"><span class="body-s muted">Ai thực hiện</span><code id="i-who">–</code></div>
+      <div class="info-item"><span class="body-s muted">Guard</span><code id="i-guard">–</code></div>
+      <div class="info-item"><span class="body-s muted">Action</span><code id="i-action">–</code></div>
+    </div>
+    <p class="callout" id="why" hidden></p>
+    <p class="body-s muted mono" id="i-src"></p>
+  </div>
+
+  <div class="deck">
+    <div class="row between">
+      <span style="font-weight:600;font-size:15px">Kịch bản (flow) để trình bày</span>
+      <div class="row">
+        <button class="btn-accent" id="next" type="button">Bước tiếp</button>
+        <button id="auto" type="button">Tự chạy</button>
+        <button class="btn-ghost" id="restart" type="button">Chạy lại kịch bản</button>
+      </div>
+    </div>
+    <div class="chips" id="flows" aria-label="Chọn kịch bản"></div>
+    <p class="body-s muted" id="flow-desc"></p>
+    <div class="narration" id="narration" aria-live="polite">Bấm "Bước tiếp" để chạy bước đầu tiên.</div>
+    <ol class="steps" id="steps"></ol>
+  </div>
+
+  <div class="deck">
+    <div class="row between">
+      <span style="font-weight:600;font-size:15px">Tự kích hoạt event</span>
+      <button class="btn-ghost" id="reset" type="button">Đặt lại (Reset)</button>
+    </div>
+    <div class="inputs" id="inputs"></div>
+    <div class="row" id="buttons"></div>
+    <p class="body-s muted">Nút xanh là event hợp lệ ở trạng thái hiện tại. Nút mờ vẫn bấm được để xem hệ thống từ chối. Các ô bên trên là dữ liệu mà guard kiểm tra.</p>
+  </div>
+
+  <div class="split">
+    <div class="panel"><span style="font-weight:600">Biến của đối tượng</span><div class="vars" id="vars"></div></div>
+    <div class="panel"><span style="font-weight:600">Nhật ký</span><div class="log" id="log"></div></div>
+  </div>
+</div>
+
+<script src="state-machines.js"></script>
+<script>
+const { MACHINES, render, now, findT, checkGuard, freshCtx } = window.SM;
+const $ = id => document.getElementById(id);
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const flowResults = [];
+let key, m, ref, state, ctx, busy = false, flowIdx = 0, stepIdx = 0, autoTimer = null;
+
+function log(msg, cls) {
+  const d = document.createElement('div'); d.className = cls; d.textContent = `${now()}  ${msg}`;
+  $('log').prepend(d);
+}
+function setInfo(t, ev, guard, action, result, ok, why) {
+  $('i-event').textContent = ev; $('i-who').textContent = t?.who || '–';
+  $('i-guard').textContent = guard; $('i-action').textContent = action;
+  $('i-src').textContent = t?.src ? `Handler: ${t.src}` : '';
+  $('result-badge').textContent = result; $('result-badge').className = 'badge ' + (ok === true ? 'ok' : ok === false ? 'bad' : '');
+  $('why').hidden = !why; $('why').textContent = why ? `Bị chặn: ${why}` : '';
+}
+function clearEdges() {
+  Object.values(ref.edges).forEach(e => { e.classList.remove('is-active', 'is-error'); e.setAttribute('marker-end', `url(#car-n-${ref.uid})`); });
+  Object.values(ref.nodes).forEach(n => n.classList.remove('is-error'));
+}
+
+function load(k) {
+  stopAuto();
+  key = k; m = MACHINES[k]; flowIdx = 0;
+  try { history.replaceState(null, '', '#' + k); } catch (e) {}
+  ref = render($('svg'), m, 'sim');
+  renderTabs();
+  restartFlow();
+  $('log').innerHTML = '';
+  const e = ref.edges.init; e.classList.add('is-active'); e.setAttribute('marker-end', `url(#car-a-${ref.uid})`);
+  log(`● --${m.initEvent}--> ${state}`, 'ok');
+}
+
+function renderTabs() {
+  $('tabs').innerHTML = '';
+  Object.entries(MACHINES).forEach(([k, mm]) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip' + (k === key ? ' is-active' : '');
+    b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', k === key);
+    b.textContent = mm.name; b.title = mm.vi;
+    b.onclick = () => { if (!busy) load(k); };
+    $('tabs').appendChild(b);
+  });
+}
+
+function renderInputs() {
+  $('inputs').innerHTML = '';
+  m.inputs.forEach(i => {
+    const l = document.createElement('label');
+    if (i.type === 'check') {
+      l.innerHTML = `<input type="checkbox" id="in-${key}-${i.id}"> ${i.label}`;
+      const c = l.querySelector('input'); c.checked = ctx[i.id];
+      c.onchange = () => { ctx[i.id] = c.checked; };
+    } else {
+      l.innerHTML = `${i.label}<input type="text" id="in-${key}-${i.id}" placeholder="để trống để thử guard sai">`;
+      const t = l.querySelector('input'); t.value = ctx[i.id];
+      t.oninput = () => { ctx[i.id] = t.value; };
+    }
+    $('inputs').appendChild(l);
+  });
+  if (!m.inputs.length) $('inputs').innerHTML = '<span class="body-s muted">Máy này không có guard cần nhập.</span>';
+}
+function syncInputs() {
+  m.inputs.forEach(i => {
+    const el = $(`in-${key}-${i.id}`); if (!el) return;
+    if (i.type === 'check') el.checked = !!ctx[i.id]; else el.value = ctx[i.id] ?? '';
+  });
+}
+
+function renderFlows() {
+  $('flows').innerHTML = '';
+  m.flows.forEach((f, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip' + (i === flowIdx ? ' is-active' : ''); b.textContent = f.name;
+    b.onclick = () => { if (busy) return; flowIdx = i; restartFlow(); };
+    $('flows').appendChild(b);
+  });
+}
+// Đưa máy về trạng thái đầu và dữ liệu mặc định, sẵn sàng chạy kịch bản đang chọn
+function restartFlow() {
+  stopAuto();
+  state = m.initial; ctx = freshCtx(m); flowResults.length = 0; stepIdx = 0;
+  renderInputs(); renderFlows(); renderSteps();
+  if (ref) clearEdges();
+  setInfo(null, m.initEvent, '[None]', '–', 'khởi tạo', null);
+  $('narration').textContent = 'Bấm "Bước tiếp" để chạy bước đầu tiên, hoặc "Tự chạy" để chạy hết kịch bản.';
+  update();
+}
+function renderSteps() {
+  const f = m.flows[flowIdx];
+  $('flow-desc').textContent = f.desc;
+  $('steps').innerHTML = '';
+  f.steps.forEach((s, i) => {
+    const li = document.createElement('li');
+    const r = flowResults[i];
+    li.className = (i === stepIdx ? 'is-current ' : '') + (i < stepIdx ? 'is-done ' : '') + (r ? (r.ok ? 'ok' : 'bad') : '');
+    const set = s.set ? ' · đặt ' + Object.entries(s.set).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(', ') : '';
+    li.innerHTML = `<div><span class="ev">${s.ev}</span><span class="body-s muted">${set}</span><br>${s.say}${r ? `<br><span class="res ${r.ok ? 'ok' : 'bad'}">${r.ok ? '→ ' + r.to : '✗ ' + r.why}</span>` : ''}</div>`;
+    $('steps').appendChild(li);
+  });
+  $('next').disabled = stepIdx >= f.steps.length;
+}
+async function nextStep() {
+  const f = m.flows[flowIdx];
+  if (busy || stepIdx >= f.steps.length) return;
+  const s = f.steps[stepIdx];
+  Object.assign(ctx, s.set || {}); syncInputs();
+  $('narration').textContent = `Bước ${stepIdx + 1}/${f.steps.length}: ${s.say}`;
+  const r = await fire(findT(m, state, s.ev));
+  flowResults[stepIdx] = r; stepIdx++;
+  renderSteps();
+  if (stepIdx >= f.steps.length) { stopAuto(); $('narration').textContent += ' (Hết kịch bản.)'; }
+}
+function stopAuto() { clearInterval(autoTimer); autoTimer = null; $('auto').textContent = 'Tự chạy'; }
+
+function update() {
+  Object.entries(ref.nodes).forEach(([k, n]) => n.classList.toggle('is-active', k === state));
+  const s = m.states[state];
+  $('cur-label').textContent = `Trạng thái: ${s.vi}`;
+  $('cur-badge').textContent = `${state}${s.final ? ' (final)' : ''}`;
+  $('vars').innerHTML = `<div>state = <b>${state}</b></div>` + Object.keys(m.vars).map(k => `<div>${k} = <b>${ctx[k] ?? 'null'}</b></div>`).join('');
+
+  $('buttons').innerHTML = '';
+  const avail = m.t.filter(t => t.from === state);
+  if (!avail.length) {
+    const sp = document.createElement('span'); sp.className = 'body-s muted';
+    sp.textContent = 'Trạng thái kết thúc (Final State). Không có event tiếp theo. Bấm "Đặt lại" để bắt đầu lại.';
+    $('buttons').appendChild(sp);
+  }
+  const shown = new Set();
+  m.t.forEach((t, i) => {
+    const ok = t.from === state;
+    if (!ok && (shown.has(t.ev) || avail.some(o => o.ev === t.ev))) return;
+    shown.add(t.ev);
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = ok ? 'btn-accent' : 'btn-off';
+    b.innerHTML = `${ok ? t.btn : t.ev.replace(/\(.*/, '')} <code>${t.ev}</code>${ok ? `<span class="btn-who">· ${t.who}</span>` : ''}`;
+    b.onclick = () => { stopAuto(); fire(i); };
+    $('buttons').appendChild(b);
+  });
+}
+
+function fire(i) {
+  return new Promise(resolve => {
+    if (busy) return resolve({ ok: false, why: 'đang chạy' });
+    const t = m.t[i];
+    clearEdges();
+    const guardTxt = t.g ? `[${t.g[0]}]` : '[None]';
+    if (t.from !== state) {
+      ref.nodes[state].classList.add('is-error');
+      const why = `Không có transition ${t.ev} từ ${state} (chỉ hợp lệ từ ${t.from}).`;
+      setInfo(t, t.ev, guardTxt, 'không chạy', 'InvalidOperation', false, why);
+      log(`✗ ${t.ev}: ${why}`, 'bad');
+      return resolve({ ok: false, why });
+    }
+    const g = checkGuard(t, ctx);
+    if (g !== true) {
+      const e = ref.edges[i]; e.classList.add('is-error'); e.setAttribute('marker-end', `url(#car-e-${ref.uid})`);
+      setInfo(t, t.ev, `${guardTxt} = false`, 'không chạy', 'guard chặn', false, g);
+      log(`✗ ${t.ev}: ${g}`, 'bad');
+      return resolve({ ok: false, why: g });
+    }
+    const e = ref.edges[i];
+    e.classList.add('is-active'); e.setAttribute('marker-end', `url(#car-a-${ref.uid})`);
+    let done = false;
+    const finish = () => {
+      if (done) return; done = true;
+      ref.particle.classList.remove('is-animating');
+      const prev = state;
+      if (t.a) { t.a[1](ctx); log(`  / ${t.a[0]}`, 'act'); }
+      state = t.to;
+      setInfo(t, t.ev, t.g ? `${guardTxt} = true` : '[None]', t.a ? t.a[0] : '–', 'đã chuyển', true);
+      log(`✓ ${prev} --${t.ev}--> ${state}  (${t.who})`, 'ok');
+      if (m.states[state].final) log(`◉ ${state} là trạng thái kết thúc`, 'ok');
+      busy = false; update(); resolve({ ok: true, to: state });
+    };
+    if (reduce) return finish();
+    busy = true;
+    const len = e.getTotalLength(), t0 = performance.now();
+    ref.particle.classList.add('is-animating');
+    setTimeout(finish, 800); // tab ẩn thì requestAnimationFrame bị dừng, vẫn phải hoàn tất transition
+    (function step(ts) {
+      if (done) return;
+      const p = Math.min((ts - t0) / 550, 1), pt = e.getPointAtLength(p * len);
+      ref.particle.setAttribute('cx', pt.x); ref.particle.setAttribute('cy', pt.y);
+      p < 1 ? requestAnimationFrame(step) : finish();
+    })(t0);
+  });
+}
+
+$('reset').onclick = () => { if (!busy) load(key); };
+$('next').onclick = nextStep;
+$('restart').onclick = () => { if (!busy) restartFlow(); };
+$('auto').onclick = () => {
+  if (autoTimer) return stopAuto();
+  $('auto').textContent = 'Dừng';
+  nextStep(); autoTimer = setInterval(nextStep, 2600);
+};
+const initial = (location.hash || '').slice(1);
+load(MACHINES[initial] ? initial : 'assignment');
+</script>
+</body>
+</html>

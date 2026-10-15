@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PanelForge State Machines</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&family=Google+Sans+Code:wght@300..700&display=swap">
+<link rel="stylesheet" href="state-machines.css">
+<style>
+  .card { display: flex; flex-direction: column; gap: 12px; padding: 20px; background: var(--surface-bright); border: 1px solid var(--stroke-default); border-radius: 16px; scroll-margin-top: 64px; }
+  .group-title { margin: 20px 0 0; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--on-surface-variant); font-weight: 600; }
+  .notes { margin: 0; padding-left: 18px; font-size: 13px; line-height: 20px; color: var(--on-surface-variant); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--on-surface-variant); }
+  .legend svg { vertical-align: middle; }
+  .flows { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .flow { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; border: 1px solid var(--stroke-default); min-width: 0; }
+  .flow h4 { margin: 0; font-size: 14px; font-weight: 600; }
+  .sub { margin: 0; font-size: 14px; font-weight: 600; }
+  .card-actions a { font-size: 13px; color: var(--accent-fixed); text-decoration: none; }
+  .card-actions a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<header class="topnav"><div class="in">
+  <a class="brand" href="index.html">PanelForge · State Machines</a>
+  <nav aria-label="Trang"><a href="index.html">Tổng quan</a><a href="state-machine-diagrams.html" aria-current="page">Sơ đồ</a><a href="state-machine-simulator.html">Mô phỏng</a></nav>
+</div></header>
+
+<div class="wrap">
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <p class="body-s muted mono">SEP490 · FA26SE251 · đối chiếu Phiếu V1.2 và PanelForge.Domain / Application</p>
+    <h1 class="headline">PanelForge State Machine Diagrams</h1>
+    <p class="body-s muted">Vòng đời trạng thái của 10 thực thể chính. Mỗi ô ghi tên, hoạt động bên trong (entry / do) và tên enum. Bảng dưới mỗi sơ đồ cho biết ai được thực hiện từng chuyển trạng thái, guard và action; phần "Luồng hoạt động" là các kịch bản đã chạy thử, kèm kết quả từng bước.</p>
+  </div>
+
+  <div class="legend">
+    <span><svg width="22" height="22"><circle cx="11" cy="11" r="7" fill="var(--on-surface)"/></svg> Initial state</span>
+    <span><svg width="22" height="22"><circle cx="11" cy="11" r="7" fill="none" stroke="var(--primary)" stroke-width="1.8"/><circle cx="11" cy="11" r="3.5" fill="var(--primary)"/></svg> Final, kết thúc tốt</span>
+    <span><svg width="22" height="22"><circle cx="11" cy="11" r="7" fill="none" stroke="var(--error)" stroke-width="1.8"/><circle cx="11" cy="11" r="3.5" fill="var(--error)"/></svg> Final, bị huỷ / lỗi</span>
+    <span><code class="mono g">[guard]</code> điều kiện</span>
+    <span><code class="mono a">/ action</code> hành động khi chuyển</span>
+  </div>
+
+  <nav class="chips" id="nav" aria-label="Mục lục"></nav>
+
+  <section class="card" id="overview">
+    <div><h2 class="headline-s">Tổng quan: các thực thể liên kết thế nào</h2>
+    <p class="body-s muted">Mũi tên cho biết trạng thái của thực thể này tạo ra hoặc kích hoạt thực thể kia.</p></div>
+    <div class="viewport"><svg id="svg-overview" role="img" aria-label="Sơ đồ tổng quan"></svg></div>
+  </section>
+
+  <div id="cards" style="display:flex;flex-direction:column;gap:16px"></div>
+</div>
+
+<script src="state-machines.js"></script>
+<script>
+const { MACHINES, render, runFlow } = window.SM;
+const GROUPS = [
+  ['Luồng sản xuất', ['chapter', 'assignment', 'stage', 'submission', 'cr']],
+  ['Kiểm soát chất lượng & phản hồi', ['finding', 'feedback']],
+  ['AI hỗ trợ (đề xuất, con người quyết định)', ['airun', 'aisug']],
+  ['Xuất bản', ['export']],
+];
+
+const OVERVIEW = {
+  states: {
+    Assignment: { vi: 'Nhiệm vụ', act: 'giao cho người làm', col: 0, row: 0 },
+    StageProgress: { vi: 'Tiến độ panel', act: 'panel × stage', col: 0, row: 1 },
+    Submission: { vi: 'Lần nộp', act: 'chờ Editor', col: 1, row: 0 },
+    ChangeRequest: { vi: 'Yêu cầu sửa', act: 'Open → Verified', col: 2, row: 0 },
+    ConsistencyFinding: { vi: 'Lỗi nhất quán', act: 'triage', col: 3, row: 0 },
+    AiSuggestion: { vi: 'Đề xuất AI', act: 'người quyết định', col: 1, row: 2 },
+    AiWorkflowRun: { vi: 'Lượt chạy AI', act: 'Writer → Continuity', col: 0, row: 2 },
+    Chapter: { vi: 'Chương', act: 'InProduction → Published', col: 2, row: 1 },
+    PreviewFeedback: { vi: 'Phản hồi xem thử', act: 'New → NeedsChange', col: 3, row: 1 },
+    ExportJob: { vi: 'Xuất file', act: 'Queued → Completed', col: 2, row: 2, final: 'good' },
+  },
+  t: [
+    { from: 'Assignment', to: 'Submission', ev: 'nộp bài' },
+    { from: 'StageProgress', to: 'Submission', ev: 'nộp' },
+    { from: 'Submission', to: 'ChangeRequest', ev: 'Rejected' },
+    { from: 'ConsistencyFinding', to: 'Chapter', ev: 'Blocking chặn duyệt' },
+    { from: 'PreviewFeedback', to: 'ChangeRequest', ev: 'NeedsChange' },
+    { from: 'AiWorkflowRun', to: 'AiSuggestion', ev: 'tạo đề xuất' },
+    { from: 'AiSuggestion', to: 'StageProgress', ev: 'Accepted' },
+    { from: 'StageProgress', to: 'Chapter', ev: 'đủ Approved' },
+    { from: 'PreviewFeedback', to: 'Chapter', ev: 'reopen' },
+    { from: 'Chapter', to: 'ExportJob', ev: 'Published' },
+  ],
+};
+render(document.getElementById('svg-overview'), OVERVIEW, 'ov');
+
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const nav = document.getElementById('nav'), cards = document.getElementById('cards');
+const link = (href, txt) => { const x = document.createElement('a'); x.href = href; x.className = 'chip'; x.textContent = txt; x.style.textDecoration = 'none'; x.style.display = 'inline-flex'; x.style.alignItems = 'center'; return x; };
+nav.appendChild(link('#overview', 'Tổng quan'));
+
+GROUPS.forEach(([title, keys]) => {
+  const h = document.createElement('h2'); h.className = 'group-title'; h.textContent = title; cards.appendChild(h);
+  keys.forEach(k => {
+    const m = MACHINES[k];
+    nav.appendChild(link('#' + k, m.name));
+    const c = document.createElement('section'); c.className = 'card'; c.id = k;
+    const rows = m.t.map(t => `<tr><td><code>${t.from}</code></td><td><code>${esc(t.ev)}</code></td><td>${esc(t.who)}</td>
+      <td>${t.g ? `<code class="g">[${esc(t.g[0])}]</code>` : ''}</td><td><code>${t.to}</code></td>
+      <td>${t.a ? `<code class="a">/ ${esc(t.a[0])}</code>` : ''}</td></tr>`).join('');
+    const flows = m.flows.map(f => {
+      const res = runFlow(m, f);
+      const steps = f.steps.map((s, i) => {
+        const r = res[i];
+        return `<li class="${r.ok ? 'ok' : 'bad'}"><div><span class="ev">${esc(s.ev)}</span> <span class="body-s muted">· ${esc(r.t ? r.t.who : '')}</span><br>${esc(s.say)}<br><span class="res ${r.ok ? 'ok' : 'bad'}">${r.ok ? '→ ' + r.to : '✗ bị chặn: ' + esc(r.why)}</span></div></li>`;
+      }).join('');
+      return `<div class="flow"><h4>${esc(f.name)}</h4><p class="body-s muted">${esc(f.desc)}</p><ol class="steps">${steps}</ol></div>`;
+    }).join('');
+    c.innerHTML = `
+      <div class="row between"><h3 class="headline-s">${m.name} <span class="muted" style="font-weight:400">· ${m.vi}</span></h3>
+      <div class="row card-actions"><span class="badge">${m.file}</span><a href="state-machine-simulator.html#${k}">Mở mô phỏng →</a></div></div>
+      <div class="viewport"><svg role="img" aria-label="State machine ${m.name}"></svg></div>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Từ</th><th>Event</th><th>Ai thực hiện</th><th>Guard</th><th>Đến</th><th>Action</th></tr></thead>
+        <tbody><tr><td><code>●</code></td><td><code>${m.initEvent}</code></td><td></td><td></td><td><code>${m.initial}</code></td><td></td></tr>${rows}</tbody>
+      </table></div>
+      <h4 class="sub">Luồng hoạt động</h4>
+      <div class="flows">${flows}</div>
+      <ul class="notes">${m.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
+    cards.appendChild(c);
+    render(c.querySelector('svg'), m, k);
+  });
+});
+</script>
+</body>
+</html>
