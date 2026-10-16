@@ -15,6 +15,10 @@
   .sub { margin: 16px 0 6px; font-size: 15px; font-weight: 650; }
   .card-actions a { font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none; padding: 4px 12px; border-radius: 999px; background: var(--accent-container); transition: all .15s ease; }
   .card-actions a:hover { filter: brightness(0.95); text-decoration: underline; }
+  .uml { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+  .uml figcaption { font-size: 13px; font-weight: 600; color: var(--on-surface-variant); }
+  .uml a { display: block; overflow-x: auto; background: #fff; border: 1px solid var(--stroke-default); border-radius: 12px; padding: 8px; }
+  .uml img { display: block; width: 100%; min-width: 720px; height: auto; }
   .notes { margin: 0; padding-left: 20px; font-size: 13px; line-height: 22px; color: var(--on-surface-variant); }
 </style>
 </head>
@@ -105,6 +109,13 @@ function roleClass(who) {
 }
 
 const { MACHINES, render, runFlow } = window.SM;
+// Ảnh xuất từ docs/state machine/panelforge-state-machines.drawio (mỗi trang một máy)
+const UML = {
+  chapter: 'img/sm-1-chapter.png', assignment: 'img/sm-2-assignment.png', stage: 'img/sm-3-stage-progress.png',
+  submission: 'img/sm-4-submission.png', cr: 'img/sm-5-change-request.png', finding: 'img/sm-6-consistency-finding.png',
+  feedback: 'img/sm-7-preview-feedback.png', airun: 'img/sm-8-ai-workflow-run.png', aisug: 'img/sm-9-ai-suggestion.png',
+  export: 'img/sm-10-export-job.png',
+};
 const GROUPS = [
   ['Luồng sản xuất & Kiểm duyệt (Core Production)', ['chapter', 'assignment', 'stage', 'submission', 'cr']],
   ['Kiểm soát chất lượng & Phản hồi (Quality & Feedback)', ['finding', 'feedback']],
@@ -192,8 +203,12 @@ GROUPS.forEach(([title, keys]) => {
           <a href="state-machine-simulator.html#${k}">⚡ Mở mô phỏng tương tác →</a>
         </div>
       </div>
+      <figure class="uml">
+        <figcaption>Sơ đồ UML State Machine (vẽ trên draw.io) · bấm để xem kích thước gốc</figcaption>
+        <a href="${UML[k]}" target="_blank" rel="noopener"><img src="${UML[k]}" alt="UML state machine ${m.name} vẽ bằng draw.io" loading="lazy"></a>
+      </figure>
       <div class="viewport"><svg role="img" aria-label="State machine ${m.name}"></svg></div>
-      
+
       <div style="display:flex;flex-direction:column;gap:8px">
         <span style="font-weight:650;font-size:14.5px">Bảng chuyển trạng thái (Transitions & Guards)</span>
         <div class="table-wrap"><table class="table">
