@@ -3,97 +3,161 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PanelForge State Simulator</title>
+<title>PanelForge · State Machine Simulator</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&family=Google+Sans+Code:wght@300..700&display=swap">
 <link rel="stylesheet" href="state-machines.css">
 <style>
   .inputs { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
-  .inputs label { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; }
+  .inputs label { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 500; }
   .inputs input[type=text] { min-width: 220px; padding: 8px 14px; border: 1px solid var(--stroke-default); border-radius: 999px; background: var(--surface-bright); color: var(--on-surface); font: 13px var(--ff-sans); }
-  .inputs input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent-fixed); }
-  .info-grid.four { grid-template-columns: repeat(4, 1fr); }
-  @media (max-width: 760px) { .info-grid.four { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 480px) { .info-grid.four { grid-template-columns: 1fr; } }
-  .split { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; }
-  @media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
-  .vars { font: 12px var(--ff-mono); display: grid; gap: 3px; }
-  .vars b { font-weight: 600; }
-  .log { font: 12px var(--ff-mono); display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
-  .log div { padding: 4px 8px; border-left: 3px solid var(--stroke-default); }
-  .log .ok { border-color: var(--primary); }
-  .log .bad { border-color: var(--error); color: var(--error); }
-  .log .act { border-color: var(--positive); color: var(--positive); }
-  .btn-who { font-size: 11px; opacity: .7; }
+  .inputs input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--primary); }
+  .split { display: grid; grid-template-columns: 1fr 1.4fr; gap: 14px; }
+  @media (max-width: 760px) { .split { grid-template-columns: 1fr; } }
+  .vars { font: 12px var(--ff-mono); display: grid; gap: 4px; padding: 10px; background: var(--surface-dim); border-radius: 8px; }
+  .vars div { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--stroke-default); padding: 3px 0; }
+  .vars div:last-child { border-bottom: 0; }
+  .vars b { font-weight: 600; color: var(--primary); }
+  .progress-wrap { width: 100%; height: 6px; background: var(--surface-container); border-radius: 999px; overflow: hidden; margin: 4px 0; }
+  .progress-bar { width: 0%; height: 100%; background: var(--primary); transition: width .3s ease; border-radius: 999px; }
 </style>
 </head>
 <body>
-<header class="topnav"><div class="in">
-  <a class="brand" href="index.html">PanelForge · State Machines</a>
-  <nav aria-label="Trang"><a href="index.html">Tổng quan</a><a href="state-machine-diagrams.html">Sơ đồ</a><a href="state-machine-simulator.html" aria-current="page">Mô phỏng</a></nav>
-</div></header>
+<header class="topnav">
+  <div class="in">
+    <div class="brand-wrap">
+      <a class="brand" href="index.html">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        PanelForge
+      </a>
+      <span class="brand-badge">Simulator Engine</span>
+    </div>
+    <div class="actions">
+      <nav aria-label="Trang">
+        <a href="index.html">Tổng quan</a>
+        <a href="state-machine-diagrams.html">Sơ đồ</a>
+        <a href="state-machine-simulator.html" aria-current="page">Mô phỏng</a>
+      </nav>
+      <button class="btn-icon" id="theme-toggle" type="button" aria-label="Chuyển chế độ sáng tối">🌙</button>
+    </div>
+  </div>
+</header>
 
 <div class="wrap">
-  <div style="display:flex;flex-direction:column;gap:4px">
-    <p class="body-s muted mono">SEP490 · FA26SE251 · UML State Machine</p>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <p class="body-s muted mono" style="color:var(--primary);font-weight:600">SEP490 · FA26SE251 · INTERACTIVE STATE SIMULATOR</p>
     <h1 class="headline">Mô phỏng State Machine</h1>
-    <p class="body-s muted">Chọn một thực thể, chạy một kịch bản có sẵn từng bước hoặc tự bấm event. Guard và thông báo lỗi lấy theo Handler trong Backend, vai trò theo Phiếu đăng ký V1.2.</p>
+    <p class="body-s muted">Chọn một thực thể để chạy kịch bản tự động từng bước hoặc tự kích hoạt event. Guard và câu thông báo lỗi lấy trực tiếp từ Backend Handler, vai trò thực hiện phân theo ma trận phân quyền.</p>
   </div>
 
+  <!-- Machine Selector Chips -->
   <div class="chips" id="tabs" role="tablist" aria-label="Chọn thực thể"></div>
 
-  <div class="viewport"><svg id="svg" role="img" aria-label="Sơ đồ trạng thái"></svg></div>
+  <!-- Interactive SVG Canvas -->
+  <div class="viewport">
+    <svg id="svg" role="img" aria-label="Sơ đồ trạng thái động"></svg>
+  </div>
 
+  <!-- Current State Status Panel -->
   <div class="panel">
     <div class="row between">
-      <div class="row">
-        <span class="headline-s" id="cur-label" style="font-size:16px">Trạng thái hiện tại</span>
-        <span class="badge" id="cur-badge"></span>
+      <div class="row" style="gap:10px">
+        <span class="pulse-dot"></span>
+        <span class="headline-s" id="cur-label" style="font-size:17px">Trạng thái hiện tại</span>
+        <span class="badge ok" id="cur-badge" style="font-size:13px;font-weight:600"></span>
       </div>
       <span class="badge" id="result-badge">sẵn sàng</span>
     </div>
     <div class="info-grid four">
       <div class="info-item"><span class="body-s muted">Event vừa kích hoạt</span><code id="i-event">–</code></div>
-      <div class="info-item"><span class="body-s muted">Ai thực hiện</span><code id="i-who">–</code></div>
-      <div class="info-item"><span class="body-s muted">Guard</span><code id="i-guard">–</code></div>
-      <div class="info-item"><span class="body-s muted">Action</span><code id="i-action">–</code></div>
+      <div class="info-item"><span class="body-s muted">Ai thực hiện (Role)</span><span id="i-who" class="badge-role" style="font-size:12px;display:inline-block">–</span></div>
+      <div class="info-item"><span class="body-s muted">Điều kiện Guard</span><code id="i-guard">–</code></div>
+      <div class="info-item"><span class="body-s muted">Hành động Action</span><code id="i-action">–</code></div>
     </div>
     <p class="callout" id="why" hidden></p>
     <p class="body-s muted mono" id="i-src"></p>
   </div>
 
+  <!-- Scenario Player Deck -->
   <div class="deck">
     <div class="row between">
-      <span style="font-weight:600;font-size:15px">Kịch bản (flow) để trình bày</span>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-weight:650;font-size:16px">Trình phát Kịch bản (Scenario Player)</span>
+        <span class="body-s muted" id="flow-count-label">Chọn luồng hoạt động chuẩn hoặc luồng lỗi để kiểm thử</span>
+      </div>
       <div class="row">
-        <button class="btn-accent" id="next" type="button">Bước tiếp</button>
-        <button id="auto" type="button">Tự chạy</button>
-        <button class="btn-ghost" id="restart" type="button">Chạy lại kịch bản</button>
+        <button class="btn-accent" id="next" type="button">▶ Bước tiếp</button>
+        <button id="auto" type="button" class="btn-ghost">⚡ Tự chạy</button>
+        <button class="btn-ghost" id="restart" type="button">⟲ Chạy lại</button>
       </div>
     </div>
+
+    <!-- Progress bar -->
+    <div class="progress-wrap"><div class="progress-bar" id="flow-progress"></div></div>
+
     <div class="chips" id="flows" aria-label="Chọn kịch bản"></div>
-    <p class="body-s muted" id="flow-desc"></p>
-    <div class="narration" id="narration" aria-live="polite">Bấm "Bước tiếp" để chạy bước đầu tiên.</div>
+    <p class="body-s muted" id="flow-desc" style="font-style:italic"></p>
+    <div class="narration" id="narration" aria-live="polite">Bấm "Bước tiếp" để chạy bước đầu tiên, hoặc bấm "Tự chạy" để tự động diễn tiến.</div>
     <ol class="steps" id="steps"></ol>
   </div>
 
+  <!-- Manual Event Trigger Deck -->
   <div class="deck">
     <div class="row between">
-      <span style="font-weight:600;font-size:15px">Tự kích hoạt event</span>
-      <button class="btn-ghost" id="reset" type="button">Đặt lại (Reset)</button>
+      <div>
+        <span style="font-weight:650;font-size:16px">Tự kích hoạt Event (Manual Triggers)</span>
+        <p class="body-s muted" style="margin-top:2px">Nút sáng là event hợp lệ ở trạng thái hiện tại. Nút mờ vẫn bấm được để kiểm tra phản ứng từ chối của Domain.</p>
+      </div>
+      <button class="btn-ghost" id="reset" type="button">Đặt lại biến (Reset)</button>
     </div>
     <div class="inputs" id="inputs"></div>
     <div class="row" id="buttons"></div>
-    <p class="body-s muted">Nút xanh là event hợp lệ ở trạng thái hiện tại. Nút mờ vẫn bấm được để xem hệ thống từ chối. Các ô bên trên là dữ liệu mà guard kiểm tra.</p>
   </div>
 
+  <!-- Split Panel: Variables & Console Log -->
   <div class="split">
-    <div class="panel"><span style="font-weight:600">Biến của đối tượng</span><div class="vars" id="vars"></div></div>
-    <div class="panel"><span style="font-weight:600">Nhật ký</span><div class="log" id="log"></div></div>
+    <div class="panel">
+      <div class="row between">
+        <span style="font-weight:650;font-size:15px">Biến đối tượng (Context Variables)</span>
+        <span class="badge mono">In-Memory State</span>
+      </div>
+      <div class="vars" id="vars"></div>
+    </div>
+    <div class="panel">
+      <div class="row between">
+        <span style="font-weight:650;font-size:15px">Nhật ký chuyển trạng thái (Console Log)</span>
+        <button class="btn-ghost" style="min-height:26px;padding:2px 10px;font-size:11px" onclick="$('log').innerHTML=''">Xoá log</button>
+      </div>
+      <div class="log-terminal" id="log"></div>
+    </div>
   </div>
 </div>
 
 <script src="state-machines.js"></script>
 <script>
+// Theme Management
+const themeBtn = document.getElementById('theme-toggle');
+function applyTheme(th) {
+  document.documentElement.setAttribute('data-theme', th);
+  localStorage.setItem('sm_theme', th);
+  themeBtn.textContent = th === 'dark' ? '☀️' : '🌙';
+  themeBtn.title = th === 'dark' ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối';
+}
+const curTheme = localStorage.getItem('sm_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+applyTheme(curTheme);
+themeBtn.onclick = () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+
+function roleClass(who) {
+  if (!who) return '';
+  const w = who.toLowerCase();
+  if (w.includes('producer')) return 'role-producer';
+  if (w.includes('editor')) return 'role-editor';
+  if (w.includes('artist')) return 'role-artist';
+  if (w.includes('writer')) return 'role-writer';
+  if (w.includes('publisher')) return 'role-publisher';
+  if (w.includes('ai') || w.includes('continuity')) return 'role-ai';
+  return '';
+}
+
 const { MACHINES, render, now, findT, checkGuard, freshCtx } = window.SM;
 const $ = id => document.getElementById(id);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -104,13 +168,23 @@ function log(msg, cls) {
   const d = document.createElement('div'); d.className = cls; d.textContent = `${now()}  ${msg}`;
   $('log').prepend(d);
 }
+
 function setInfo(t, ev, guard, action, result, ok, why) {
-  $('i-event').textContent = ev; $('i-who').textContent = t?.who || '–';
+  $('i-event').textContent = ev;
+  const whoEl = $('i-who');
+  if (t?.who) {
+    whoEl.textContent = t.who;
+    whoEl.className = 'badge-role ' + roleClass(t.who);
+  } else {
+    whoEl.textContent = '–';
+    whoEl.className = 'badge-role';
+  }
   $('i-guard').textContent = guard; $('i-action').textContent = action;
-  $('i-src').textContent = t?.src ? `Handler: ${t.src}` : '';
+  $('i-src').textContent = t?.src ? `Backend Handler: ${t.src}` : '';
   $('result-badge').textContent = result; $('result-badge').className = 'badge ' + (ok === true ? 'ok' : ok === false ? 'bad' : '');
   $('why').hidden = !why; $('why').textContent = why ? `Bị chặn: ${why}` : '';
 }
+
 function clearEdges() {
   Object.values(ref.edges).forEach(e => { e.classList.remove('is-active', 'is-error'); e.setAttribute('marker-end', `url(#car-n-${ref.uid})`); });
   Object.values(ref.nodes).forEach(n => n.classList.remove('is-error'));
@@ -155,8 +229,9 @@ function renderInputs() {
     }
     $('inputs').appendChild(l);
   });
-  if (!m.inputs.length) $('inputs').innerHTML = '<span class="body-s muted">Máy này không có guard cần nhập.</span>';
+  if (!m.inputs.length) $('inputs').innerHTML = '<span class="body-s muted">Thực thể này không yêu cầu tham số Guard nhập tay.</span>';
 }
+
 function syncInputs() {
   m.inputs.forEach(i => {
     const el = $(`in-${key}-${i.id}`); if (!el) return;
@@ -168,21 +243,28 @@ function renderFlows() {
   $('flows').innerHTML = '';
   m.flows.forEach((f, i) => {
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip' + (i === flowIdx ? ' is-active' : ''); b.textContent = f.name;
+    b.type = 'button'; b.className = 'chip' + (i === flowIdx ? ' is-active' : ''); b.textContent = `${i + 1}. ${f.name}`;
     b.onclick = () => { if (busy) return; flowIdx = i; restartFlow(); };
     $('flows').appendChild(b);
   });
 }
-// Đưa máy về trạng thái đầu và dữ liệu mặc định, sẵn sàng chạy kịch bản đang chọn
+
+function updateProgress() {
+  const f = m.flows[flowIdx];
+  const pct = f.steps.length ? Math.min(100, Math.round((stepIdx / f.steps.length) * 100)) : 0;
+  $('flow-progress').style.width = pct + '%';
+}
+
 function restartFlow() {
   stopAuto();
   state = m.initial; ctx = freshCtx(m); flowResults.length = 0; stepIdx = 0;
-  renderInputs(); renderFlows(); renderSteps();
+  renderInputs(); renderFlows(); renderSteps(); updateProgress();
   if (ref) clearEdges();
   setInfo(null, m.initEvent, '[None]', '–', 'khởi tạo', null);
   $('narration').textContent = 'Bấm "Bước tiếp" để chạy bước đầu tiên, hoặc "Tự chạy" để chạy hết kịch bản.';
   update();
 }
+
 function renderSteps() {
   const f = m.flows[flowIdx];
   $('flow-desc').textContent = f.desc;
@@ -192,11 +274,12 @@ function renderSteps() {
     const r = flowResults[i];
     li.className = (i === stepIdx ? 'is-current ' : '') + (i < stepIdx ? 'is-done ' : '') + (r ? (r.ok ? 'ok' : 'bad') : '');
     const set = s.set ? ' · đặt ' + Object.entries(s.set).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(', ') : '';
-    li.innerHTML = `<div><span class="ev">${s.ev}</span><span class="body-s muted">${set}</span><br>${s.say}${r ? `<br><span class="res ${r.ok ? 'ok' : 'bad'}">${r.ok ? '→ ' + r.to : '✗ ' + r.why}</span>` : ''}</div>`;
+    li.innerHTML = `<div><span class="ev">${s.ev}</span><span class="body-s muted">${set}</span><br>${s.say}${r ? `<br><span class="res ${r.ok ? 'ok' : 'bad'}">${r.ok ? '✓ Thành công: chuyển sang ' + r.to : '✗ Bị chặn: ' + r.why}</span>` : ''}</div>`;
     $('steps').appendChild(li);
   });
   $('next').disabled = stepIdx >= f.steps.length;
 }
+
 async function nextStep() {
   const f = m.flows[flowIdx];
   if (busy || stepIdx >= f.steps.length) return;
@@ -205,23 +288,24 @@ async function nextStep() {
   $('narration').textContent = `Bước ${stepIdx + 1}/${f.steps.length}: ${s.say}`;
   const r = await fire(findT(m, state, s.ev));
   flowResults[stepIdx] = r; stepIdx++;
-  renderSteps();
-  if (stepIdx >= f.steps.length) { stopAuto(); $('narration').textContent += ' (Hết kịch bản.)'; }
+  renderSteps(); updateProgress();
+  if (stepIdx >= f.steps.length) { stopAuto(); $('narration').textContent += ' 🎉 (Kịch bản hoàn tất thành công)'; }
 }
-function stopAuto() { clearInterval(autoTimer); autoTimer = null; $('auto').textContent = 'Tự chạy'; }
+
+function stopAuto() { clearInterval(autoTimer); autoTimer = null; $('auto').textContent = '⚡ Tự chạy'; }
 
 function update() {
   Object.entries(ref.nodes).forEach(([k, n]) => n.classList.toggle('is-active', k === state));
   const s = m.states[state];
-  $('cur-label').textContent = `Trạng thái: ${s.vi}`;
-  $('cur-badge').textContent = `${state}${s.final ? ' (final)' : ''}`;
-  $('vars').innerHTML = `<div>state = <b>${state}</b></div>` + Object.keys(m.vars).map(k => `<div>${k} = <b>${ctx[k] ?? 'null'}</b></div>`).join('');
+  $('cur-label').textContent = s.vi;
+  $('cur-badge').textContent = `${state}${s.final ? ' (kết thúc)' : ''}`;
+  $('vars').innerHTML = `<div><span>state</span><b>${state}</b></div>` + Object.keys(m.vars).map(k => `<div><span>${k}</span><b>${ctx[k] ?? 'null'}</b></div>`).join('');
 
   $('buttons').innerHTML = '';
   const avail = m.t.filter(t => t.from === state);
   if (!avail.length) {
     const sp = document.createElement('span'); sp.className = 'body-s muted';
-    sp.textContent = 'Trạng thái kết thúc (Final State). Không có event tiếp theo. Bấm "Đặt lại" để bắt đầu lại.';
+    sp.textContent = '🏁 Đã đến trạng thái kết thúc (Final State). Bấm "Đặt lại" để mô phỏng lại từ đầu.';
     $('buttons').appendChild(sp);
   }
   const shown = new Set();
@@ -231,7 +315,8 @@ function update() {
     shown.add(t.ev);
     const b = document.createElement('button');
     b.type = 'button'; b.className = ok ? 'btn-accent' : 'btn-off';
-    b.innerHTML = `${ok ? t.btn : t.ev.replace(/\(.*/, '')} <code>${t.ev}</code>${ok ? `<span class="btn-who">· ${t.who}</span>` : ''}`;
+    const rc = roleClass(t.who);
+    b.innerHTML = `${ok ? t.btn : t.ev.replace(/\(.*/, '')} <code>${t.ev}</code>${ok ? `<span class="badge-role ${rc}" style="font-size:10.5px">· ${t.who}</span>` : ''}`;
     b.onclick = () => { stopAuto(); fire(i); };
     $('buttons').appendChild(b);
   });
@@ -239,13 +324,13 @@ function update() {
 
 function fire(i) {
   return new Promise(resolve => {
-    if (busy) return resolve({ ok: false, why: 'đang chạy' });
+    if (busy) return resolve({ ok: false, why: 'đang xử lý animation' });
     const t = m.t[i];
     clearEdges();
     const guardTxt = t.g ? `[${t.g[0]}]` : '[None]';
     if (t.from !== state) {
       ref.nodes[state].classList.add('is-error');
-      const why = `Không có transition ${t.ev} từ ${state} (chỉ hợp lệ từ ${t.from}).`;
+      const why = `Không có transition ${t.ev} từ trạng thái ${state}.`;
       setInfo(t, t.ev, guardTxt, 'không chạy', 'InvalidOperation', false, why);
       log(`✗ ${t.ev}: ${why}`, 'bad');
       return resolve({ ok: false, why });
@@ -264,7 +349,7 @@ function fire(i) {
       if (done) return; done = true;
       ref.particle.classList.remove('is-animating');
       const prev = state;
-      if (t.a) { t.a[1](ctx); log(`  / ${t.a[0]}`, 'act'); }
+      if (t.a) { t.a[1](ctx); log(`  / action: ${t.a[0]}`, 'act'); }
       state = t.to;
       setInfo(t, t.ev, t.g ? `${guardTxt} = true` : '[None]', t.a ? t.a[0] : '–', 'đã chuyển', true);
       log(`✓ ${prev} --${t.ev}--> ${state}  (${t.who})`, 'ok');
@@ -275,7 +360,7 @@ function fire(i) {
     busy = true;
     const len = e.getTotalLength(), t0 = performance.now();
     ref.particle.classList.add('is-animating');
-    setTimeout(finish, 800); // tab ẩn thì requestAnimationFrame bị dừng, vẫn phải hoàn tất transition
+    setTimeout(finish, 800);
     (function step(ts) {
       if (done) return;
       const p = Math.min((ts - t0) / 550, 1), pt = e.getPointAtLength(p * len);
@@ -290,7 +375,7 @@ $('next').onclick = nextStep;
 $('restart').onclick = () => { if (!busy) restartFlow(); };
 $('auto').onclick = () => {
   if (autoTimer) return stopAuto();
-  $('auto').textContent = 'Dừng';
+  $('auto').textContent = '⏸ Tạm dừng';
   nextStep(); autoTimer = setInterval(nextStep, 2600);
 };
 const initial = (location.hash || '').slice(1);
