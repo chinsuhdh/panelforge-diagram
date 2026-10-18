@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>PanelForge · State Machine Diagrams</title>
+<title>PanelForge · State Machine Diagrams & Specifications</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@300..700&family=Google+Sans+Code:wght@300..700&display=swap">
 <link rel="stylesheet" href="state-machines.css">
 <style>
   .legend { display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 13px; color: var(--on-surface-variant); padding: 12px 16px; background: var(--surface-dim); border-radius: 12px; border: 1px solid var(--stroke-default); align-items: center; }
   .legend svg { vertical-align: middle; }
-  .flows { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .flows { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
   .flow { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 14px; background: var(--surface-dim); border: 1px solid var(--stroke-subtle); min-width: 0; }
   .flow h4 { margin: 0; font-size: 14.5px; font-weight: 650; color: var(--on-surface); }
   .sub { margin: 16px 0 6px; font-size: 15px; font-weight: 650; }
@@ -30,7 +30,7 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
         PanelForge
       </a>
-      <span class="brand-badge">UML Diagrams</span>
+      <span class="brand-badge">UML Diagrams & Specifications</span>
     </div>
     <div class="actions">
       <nav aria-label="Trang">
@@ -45,18 +45,19 @@
 
 <div class="wrap">
   <div style="display:flex;flex-direction:column;gap:6px">
-    <p class="body-s muted mono" style="color:var(--primary);font-weight:600">SEP490 · FA26SE251 · DOMAIN WORKFLOW SPECIFICATIONS</p>
-    <h1 class="headline">Sơ đồ 10 State Machines PanelForge</h1>
+    <p class="body-s muted mono" style="color:var(--primary);font-weight:600">SEP490 · FA26SE251 · DOMAIN WORKFLOW SPECIFICATIONS & VERIFIED STATE MACHINES</p>
+    <h1 class="headline">Sơ đồ & Đặc tả 10 State Machines PanelForge</h1>
     <p class="body-s muted">
-      Tổng hợp vòng đời trạng thái của 10 thực thể chính. Mỗi trạng thái hiển thị hoạt động nội tại (entry / do) và mã enum trong C#. 
-      Bảng bên dưới giải thích rõ vai trò thực hiện (Who), điều kiện Guard, hành động Action và kết quả thực thi của 25 kịch bản tự động.
+      Tài liệu đặc tả toàn diện vòng đời trạng thái của 10 thực thể cốt lõi trong hệ thống hỗ trợ sản xuất truyện tranh trực tuyến PanelForge. 
+      Mỗi State Machine bao gồm: Sơ đồ chuẩn UML, Bảng định nghĩa ý nghĩa trạng thái, Bảng chi tiết bước chuyển kèm điều kiện bảo vệ Guard & hành động Action, 
+      thuyết minh giải thích nghiệp vụ chuyên sâu, đối chiếu 24 Business Rules (BR-01 đến BR-24), và kết quả kiểm thử tự động của 25 kịch bản thực tế.
     </p>
   </div>
 
   <!-- Legend -->
   <div class="legend">
-    <span style="font-weight:600;color:var(--on-surface)">Chú thích:</span>
-    <span><svg width="20" height="20"><circle cx="10" cy="10" r="7" fill="var(--on-surface)"/></svg> Trạng thái khởi tạo (Initial)</span>
+    <span style="font-weight:600;color:var(--on-surface)">Chú thích quy ước:</span>
+    <span><svg width="20" height="20"><circle cx="10" cy="10" r="7" fill="var(--on-surface)"/></svg> Khởi tạo (Initial)</span>
     <span><svg width="20" height="20"><circle cx="10" cy="10" r="7" fill="none" stroke="var(--primary)" stroke-width="2"/><circle cx="10" cy="10" r="3.5" fill="var(--primary)"/></svg> Kết thúc thành công (Good final)</span>
     <span><svg width="20" height="20"><circle cx="10" cy="10" r="7" fill="none" stroke="var(--error)" stroke-width="2"/><circle cx="10" cy="10" r="3.5" fill="var(--error)"/></svg> Kết thúc lỗi / Huỷ (Bad final)</span>
     <span><code class="mono g">[guard]</code> Điều kiện chặn</span>
@@ -70,16 +71,62 @@
   <section class="card" id="overview">
     <div class="row between">
       <div>
-        <h2 class="headline-s">Sơ đồ tổng quan: Quan hệ tương tác giữa 10 thực thể</h2>
-        <p class="body-s muted" style="margin-top:2px">Mũi tên cho biết trạng thái của thực thể nguồn kích hoạt hoặc tạo ra vòng đời của thực thể đích.</p>
+        <h2 class="headline-s">Sơ đồ tổng quan & Chuỗi điều phối liên hoàn giữa 10 thực thể</h2>
+        <p class="body-s muted" style="margin-top:2px">Mũi tên cho biết trạng thái của thực thể nguồn kích hoạt hoặc tạo ra vòng đời của thực thể đích trong quy trình studio.</p>
       </div>
-      <span class="badge mono">Inter-Entity Flow</span>
+      <span class="badge mono">Inter-Entity Flow & Orchestration</span>
     </div>
     <div class="viewport"><svg id="svg-overview" role="img" aria-label="Sơ đồ tổng quan liên kết"></svg></div>
+
+    <!-- 5 Cross-Entity Orchestration Chains -->
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+      <span style="font-weight:650;font-size:14.5px">5 Chuỗi điều phối liên hoàn cốt lõi trong hệ thống (Cross-Entity Pipelines):</span>
+      <div class="orchestration-grid">
+        <div class="orch-card">
+          <h4><span>1.</span> Trợ lý AI có giám sát (AI Loop)</h4>
+          <p>Writer yêu cầu AI qua <b>AiWorkflowRun</b> (Queued → Running). Chuỗi tác tử Writer → Continuity sinh các <b>AiSuggestion</b> (Pending). Writer xem xét và phê duyệt (Accepted) để sinh <b>ContentRevision</b> bất biến kèm SHA-256 (BR-01, BR-10). AI không tự ý duyệt cổng sản xuất (BR-02).</p>
+          <div class="orch-tags">
+            <span class="tag-sm">AiWorkflowRun</span><span class="tag-sm">AiSuggestion</span><span class="tag-sm">ContentRevision</span>
+          </div>
+        </div>
+
+        <div class="orch-card">
+          <h4><span>2.</span> Phân rã công việc & Ma trận tiến độ (Production)</h4>
+          <p>Chương ở <b>InProduction</b>. Producer tạo <b>Assignment</b> phân công cho thành viên (BR-07, BR-14). Khi Artist bắt đầu làm (InProgress), hệ thống khởi tạo ma trận <b>StageProgress</b> cho từng $(Panel, Stage)$. Mỗi Panel tiến triển độc lập, cho phép song song hóa công việc (BR-19).</p>
+          <div class="orch-tags">
+            <span class="tag-sm">Chapter</span><span class="tag-sm">Assignment</span><span class="tag-sm">StageProgress</span>
+          </div>
+        </div>
+
+        <div class="orch-card">
+          <h4><span>3.</span> Cổng kiểm duyệt & Yêu cầu sửa (Review & Gates)</h4>
+          <p>Artist hoàn thành nộp bài: tạo snapshot <b>Submission</b> (Pending) và đẩy StageProgress sang Submitted. Editor mở thẩm định trên canvas (UnderReview). Nếu chưa đạt, Editor trả về tạo <b>ChangeRequest</b> (Open kèm vùng khoanh 0..1) và Submission bị Rejected. Duyệt chỉ mở khi hết CR (BR-06).</p>
+          <div class="orch-tags">
+            <span class="tag-sm">Submission</span><span class="tag-sm">ChangeRequest</span><span class="tag-sm">StageProgress</span>
+          </div>
+        </div>
+
+        <div class="orch-card">
+          <h4><span>4.</span> Kiểm soát chất lượng & Lan truyền sửa (QA & Cascade)</h4>
+          <p>Bộ kiểm tra 3 tầng tìm <b>ConsistencyFinding</b> (Open). Finding mức Blocking chặn Producer duyệt Chapter. Phản hồi xem thử (<b>PreviewFeedback</b>) chọn NeedsChange yêu cầu Producer mở lại Chapter (thu hồi toàn bộ link xem thử theo BR-17), chuyển thành ChangeRequest và kích hoạt <b>Cascade Invalidation</b> (BR-06) kéo các stage sau về làm lại.</p>
+          <div class="orch-tags">
+            <span class="tag-sm">ConsistencyFinding</span><span class="tag-sm">PreviewFeedback</span><span class="tag-sm">Cascade Rework</span>
+          </div>
+        </div>
+
+        <div class="orch-card">
+          <h4><span>5.</span> Đóng băng, Đóng gói & Phát hành (Publishing)</h4>
+          <p>Mọi việc đạt chuẩn, Producer duyệt <b>Chapter</b> (InProduction → Approved): đóng băng bản thảo, tạo ChapterSnapshot (CF4) và khóa sửa (BR-12). Publisher thẩm định và lên lịch phát hành (Published). <b>ExportJob</b> chạy ngầm render PDF/CBZ/JSON với mã hash SHA-256 (BR-04, BR-16). Độc giả chỉ xem được sau PublishedAt (BR-24).</p>
+          <div class="orch-tags">
+            <span class="tag-sm">Chapter</span><span class="tag-sm">ExportJob</span><span class="tag-sm">Catalog</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Cards Container -->
-  <div id="cards" style="display:flex;flex-direction:column;gap:20px"></div>
+  <div id="cards" style="display:flex;flex-direction:column;gap:24px"></div>
 </div>
 
 <script src="state-machines.js"></script>
@@ -104,7 +151,7 @@ function roleClass(who) {
   if (w.includes('artist')) return 'role-artist';
   if (w.includes('writer')) return 'role-writer';
   if (w.includes('publisher')) return 'role-publisher';
-  if (w.includes('ai') || w.includes('continuity')) return 'role-ai';
+  if (w.includes('ai') || w.includes('continuity') || w.includes('worker') || w.includes('hệ thống') || w.includes('cron')) return 'role-ai';
   return '';
 }
 
@@ -117,10 +164,10 @@ const UML = {
   export: 'img/sm-10-export-job.png',
 };
 const GROUPS = [
-  ['Luồng sản xuất & Kiểm duyệt (Core Production)', ['chapter', 'assignment', 'stage', 'submission', 'cr']],
-  ['Kiểm soát chất lượng & Phản hồi (Quality & Feedback)', ['finding', 'feedback']],
-  ['AI Hỗ trợ có giám sát (Human-in-the-loop AI)', ['airun', 'aisug']],
-  ['Đóng gói & Xuất bản (Publishing)', ['export']],
+  ['Luồng sản xuất & Kiểm duyệt (Core Production Pipeline)', ['chapter', 'assignment', 'stage', 'submission', 'cr']],
+  ['Kiểm soát chất lượng & Phản hồi ngoại vi (Quality & Feedback)', ['finding', 'feedback']],
+  ['Trợ lý AI đa tác tử có giám sát (Human-in-the-loop AI)', ['airun', 'aisug']],
+  ['Đóng gói & Phân phối xuất bản (Publishing & Distribution)', ['export']],
 ];
 
 const OVERVIEW = {
@@ -156,25 +203,47 @@ const nav = document.getElementById('nav'), cards = document.getElementById('car
 const link = (href, txt) => { const x = document.createElement('a'); x.href = href; x.className = 'chip'; x.textContent = txt; x.style.textDecoration = 'none'; x.style.display = 'inline-flex'; x.style.alignItems = 'center'; return x; };
 nav.appendChild(link('#overview', '🗺️ Tổng quan'));
 
+function formatNote(n) {
+  return n.replace(/\b(BR-\d+)\b/g, '<span class="br-badge">$1</span>');
+}
+
 GROUPS.forEach(([title, keys]) => {
   const h = document.createElement('h2'); h.className = 'group-title'; h.textContent = title; cards.appendChild(h);
   keys.forEach(k => {
     const m = MACHINES[k];
     nav.appendChild(link('#' + k, m.name));
     const c = document.createElement('section'); c.className = 'card'; c.id = k;
+
+    // 1. State Catalog Table
+    const stateRows = Object.entries(m.states).map(([sKey, sVal]) => {
+      const isInitial = sKey === m.initial;
+      const finalBadge = sVal.final === 'good' ? '<span class="badge ok" style="font-size:11px">Final Good</span>' : sVal.final === 'bad' ? '<span class="badge" style="font-size:11px;background:var(--error-container);color:var(--error)">Final Bad</span>' : '';
+      const initialBadge = isInitial ? '<span class="badge" style="font-size:11px;background:var(--surface-container);color:var(--on-surface)">Initial</span>' : '';
+      return `<tr>
+        <td><code>${sKey}</code> ${initialBadge} ${finalBadge}</td>
+        <td><strong>${esc(sVal.vi)}</strong></td>
+        <td><code class="mono" style="font-size:11.5px">${esc(sVal.act || '–')}</code></td>
+        <td class="state-explain-cell">${esc(sVal.desc || '–')}</td>
+      </tr>`;
+    }).join('');
+
+    // 2. Transitions Table
     const rows = m.t.map(t => {
       const rc = roleClass(t.who);
       const whoBadge = t.who ? `<span class="badge-role ${rc}">${esc(t.who)}</span>` : '–';
+      const handlerText = t.src ? `<br><small class="mono muted" style="font-size:10.5px">Handler: ${esc(t.src)}</small>` : '';
       return `<tr>
         <td><code>${t.from}</code></td>
-        <td><code>${esc(t.ev)}</code></td>
+        <td><code>${esc(t.ev)}</code>${handlerText}</td>
         <td>${whoBadge}</td>
         <td>${t.g ? `<code class="g">[${esc(t.g[0])}]</code>` : '<span class="muted">[None]</span>'}</td>
         <td><code>${t.to}</code></td>
         <td>${t.a ? `<code class="a">/ ${esc(t.a[0])}</code>` : '<span class="muted">–</span>'}</td>
+        <td class="explain-cell">${esc(t.explain || '–')}</td>
       </tr>`;
     }).join('');
 
+    // 3. Scenario Flows
     const flows = m.flows.map((f, fi) => {
       const res = runFlow(m, f);
       const steps = f.steps.map((s, i) => {
@@ -209,22 +278,34 @@ GROUPS.forEach(([title, keys]) => {
       </figure>
       <div class="viewport"><svg role="img" aria-label="State machine ${m.name}"></svg></div>
 
+      <!-- State Catalog Table -->
       <div style="display:flex;flex-direction:column;gap:8px">
-        <span style="font-weight:650;font-size:14.5px">Bảng chuyển trạng thái (Transitions & Guards)</span>
+        <span style="font-weight:650;font-size:14.5px">Bảng tra cứu & Định nghĩa các trạng thái (State Catalog & Specifications)</span>
         <div class="table-wrap"><table class="table">
-          <thead><tr><th>Từ trạng thái</th><th>Sự kiện kích hoạt (Event)</th><th>Ai thực hiện (Role)</th><th>Điều kiện kiểm tra (Guard)</th><th>Trạng thái đích</th><th>Hành động thực thi (Action)</th></tr></thead>
-          <tbody><tr><td><code>●</code></td><td><code>${m.initEvent}</code></td><td>–</td><td>–</td><td><code>${m.initial}</code></td><td>–</td></tr>${rows}</tbody>
+          <thead><tr><th style="min-width:140px">Trạng thái (Enum)</th><th style="min-width:110px">Tên tiếng Việt</th><th style="min-width:180px">Hoạt động nội tại</th><th>Ý nghĩa nghiệp vụ & Trách nhiệm nhân sự</th></tr></thead>
+          <tbody>${stateRows}</tbody>
         </table></div>
       </div>
 
+      <!-- Transitions Table with Explanations -->
       <div style="display:flex;flex-direction:column;gap:8px">
-        <h4 class="sub" style="margin:0">Kịch bản hoạt động thực tế (${m.flows.length} flows)</h4>
+        <span style="font-weight:650;font-size:14.5px">Bảng chuyển trạng thái & Giải thích luồng (Transitions, Guards, Actions & Business Rationale)</span>
+        <div class="table-wrap"><table class="table">
+          <thead><tr><th style="min-width:100px">Từ</th><th style="min-width:130px">Sự kiện (Event)</th><th style="min-width:110px">Ai thực hiện</th><th style="min-width:150px">Điều kiện (Guard)</th><th style="min-width:90px">Đến</th><th style="min-width:140px">Hành động (Action)</th><th style="min-width:240px">Ý nghĩa nghiệp vụ & Tác động hệ thống</th></tr></thead>
+          <tbody><tr><td><code>●</code></td><td><code>${m.initEvent}</code></td><td>–</td><td>–</td><td><code>${m.initial}</code></td><td>Khởi tạo bản ghi</td><td class="explain-cell">Thực thể được tạo mới trong cơ sở dữ liệu với trạng thái ban đầu.</td></tr>${rows}</tbody>
+        </table></div>
+      </div>
+
+      <!-- Scenario Flows -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h4 class="sub" style="margin:0">Kịch bản hoạt động thực tế (${m.flows.length} flows đã kiểm thử tự động)</h4>
         <div class="flows">${flows}</div>
       </div>
 
+      <!-- Business Rules -->
       <div style="display:flex;flex-direction:column;gap:6px;background:var(--surface-dim);padding:14px 18px;border-radius:12px;border:1px solid var(--stroke-subtle)">
-        <span style="font-weight:650;font-size:13.5px">Quy tắc nghiệp vụ liên quan:</span>
-        <ul class="notes">${m.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>
+        <span style="font-weight:650;font-size:13.5px">Quy tắc nghiệp vụ & Ràng buộc kiến trúc liên quan (Business Rules):</span>
+        <ul class="notes">${m.notes.map(n => `<li>${formatNote(esc(n))}</li>`).join('')}</ul>
       </div>
     `;
     cards.appendChild(c);

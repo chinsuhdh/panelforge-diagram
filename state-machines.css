@@ -985,3 +985,87 @@ svg text { user-select: none; stroke: none; }
 .log-terminal .ok { border-color: #38bdf8; color: #7dd3fc; }
 .log-terminal .bad { border-color: #f87171; color: #fca5a5; }
 .log-terminal .act { border-color: #34d399; color: #6ee7b7; }
+
+/* --- Orchestration & Explanation Enhancements --- */
+.orchestration-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.orch-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--surface-dim);
+  border: 1px solid var(--stroke-subtle);
+  transition: transform .15s ease, border-color .15s ease;
+}
+.orch-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+.orch-card h4 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.orch-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--on-surface-variant);
+}
+.orch-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px dashed var(--stroke-default);
+}
+.tag-sm {
+  font-size: 11px;
+  font-family: var(--ff-mono);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-bright);
+  border: 1px solid var(--stroke-default);
+  color: var(--on-surface);
+}
+.explain-cell {
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--on-surface-variant);
+  min-width: 220px;
+  max-width: 340px;
+}
+.state-explain-cell {
+  font-size: 12.5px;
+  line-height: 19px;
+  color: var(--on-surface-variant);
+}
+.br-badge {
+  display: inline-block;
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--accent-container);
+  color: var(--primary);
+  margin-right: 6px;
+  border: 1px solid var(--stroke-default);
+}
+
+.callout.callout-info {
+  background: var(--surface-dim);
+  color: var(--on-surface);
+  border-left: 4px solid var(--primary);
+}

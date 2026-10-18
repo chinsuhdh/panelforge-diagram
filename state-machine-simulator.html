@@ -182,7 +182,17 @@ function setInfo(t, ev, guard, action, result, ok, why) {
   $('i-guard').textContent = guard; $('i-action').textContent = action;
   $('i-src').textContent = t?.src ? `Backend Handler: ${t.src}` : '';
   $('result-badge').textContent = result; $('result-badge').className = 'badge ' + (ok === true ? 'ok' : ok === false ? 'bad' : '');
-  $('why').hidden = !why; $('why').textContent = why ? `Bị chặn: ${why}` : '';
+  if (why) {
+    $('why').hidden = false;
+    $('why').className = 'callout';
+    $('why').textContent = `Bị chặn: ${why}`;
+  } else if (t?.explain) {
+    $('why').hidden = false;
+    $('why').className = 'callout callout-info';
+    $('why').textContent = `💡 Ý nghĩa nghiệp vụ: ${t.explain}`;
+  } else {
+    $('why').hidden = true;
+  }
 }
 
 function clearEdges() {
